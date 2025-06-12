@@ -1,0 +1,46 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # 수동 실행 허용
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install yt-dlp
+    
+    - name: Create Icons dir
+      run: mkdir Icons
+      
+    - name: Download app icon
+      run: |
+        curl -L https://raw.githubusercontent.com/yt-dlp/yt-dlp/master/logo.ico -o Icons/app_icon.ico
+      
+    - name: Download yt-dlp executable
+      run: |
+        curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe -o yt-dlp.exe
+    
+    - name: Build with PyInstaller
+      run: |
+        pyinstaller --onefile --windowed --icon=Icons/app_icon.ico --add-data "yt-dlp.exe;." --name "YouTube Downloader" youtube_downloader.py
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: YouTubeDownloader-Windows
+        path: dist/YouTube Downloader.exe
